@@ -14,6 +14,16 @@ preflight proof. Each host runner stopped at that proof gate, before its sole
 detached active-launch gate. There is therefore no observed root access and no
 `vulnerable` or `not_observed` classification for CVE-2021-44828.
 
+Subsequent CVE-2022-46395 work isolated the live boundary further. The exact
+inert profile verifier that had passed once in v4 produced no proof in fresh
+background, foreground, dlog, process-map, session-isolated, and post-reboot
+stages. The final v10 replay passed its target, recent-boot, archive, remote
+hash, and zero-return launch gates after a full TV reboot, but still classified
+`marker=no-proof`. Active CVE-2022-46395 exploitation is therefore stopped at
+the managed-dispatch prerequisite; no EGL, Mali exploit-stage access, race,
+reclaim, page-table operation, physical mapping, credential write, or root
+operation ran.
+
 ## CVE-2021-44828 managed validator
 
 - Candidate archive:
@@ -75,6 +85,39 @@ establishes that the credential supervisor was not invoked. No EGL setup,
 Mali open, race, reclaim, PTE operation, physical scan, credential mutation,
 or transient UID/GID/capability proof ran.
 
+## CVE-2022-46395 later controls and final disposition
+
+The current offline candidate is
+`q60t-mali-poc-netcoreapp2.2-bootstrap-progressive-proof-20260927.tar.gz`,
+SHA-256
+`2db46254d7ddbbf8a33f80cef8bc742402c2d2c32c22176209fbca678dde43a5`.
+Its bootstrap and chain DLL hashes are
+`1a7323f397a5c1fab8e0f9e930c48e12c36d9c46446d6d641c87194beaa7d447`
+and
+`cd806105142be89c35e660040b11950415dd444bf8c355100542163c4d04a684`.
+The bundle and progressive transports passed offline tests. Direct live
+diagnostic stages did not establish the first bootstrap marker, so the active
+probe, physical-proof, and credential-proof modes remained gated off.
+
+Fresh stages using the exact inert v4 verifier then produced these terminal
+results:
+
+- v5 background/wait: `marker=no-proof,launcher=no-output,exit=zero,error-log=captured`;
+- v6 direct foreground: zero-return launch evidence passed, `marker=no-proof`;
+- v7 bounded dlog: `marker=no-proof,dlog-exit=nonzero,boundary=no-output,failure=unknown`;
+- v8 PID-map sampling: `marker=no-proof,launcher=no-output,exit=zero,error-log=captured,process-map=unseen,launcher-map=unseen,plugin-map=unseen,coreclr-map=unseen`;
+- v9 firmware `setsid -w`: `marker=no-proof`; and
+- v10 recent-boot direct foreground after a full reboot: `marker=no-proof`.
+
+The v8 `unseen` values mean no observation in the bounded sampling window, not
+proof that a process or library was absent. Static launcher analysis found a
+pre-dispatch branch that can skip `coreclr_execute_assembly` when `bSigTerm` is
+set while returning zero, and the managed assembly result is not propagated as
+the launcher status. The live branch and cause remain unknown. The final
+Samsung report therefore treats the exact binary lifetime gap as supported,
+the PoC as implemented and offline-tested, and live exploitation/root as not
+performed.
+
 ## Artifact and tool boundary
 
 Both deployed WGTs were signed through the pinned Tizen Studio
@@ -93,7 +136,8 @@ recorded here.
 
 ## Retention rule
 
-Do not rerun either live command, reuse either stage, delete those stages, or
-uninstall the retained packages automatically. A missing proof is terminal by
-design because launcher/process state cannot be inferred safely from its zero
-status. Cleanup, if ever desired, is a separate manually authorized operation.
+Do not rerun any recorded live command, reuse or query a consumed stage, delete
+those stages, or uninstall the retained packages automatically. A missing
+proof is terminal by design because launcher/process state cannot be inferred
+safely from its zero status. Cleanup, if ever desired, is a separate manually
+authorized operation.
