@@ -1,8 +1,15 @@
 # Remote PC/CIFS credential injection to UID 0
 
 Status: live-validated on one owner-controlled Samsung GQ55Q60TGUXZG running
-`T-NKLDEUC-2743.0`; the fresh harness in this directory has passed its offline
-audit and Mac-local lab validation but has not been run against the TV.
+`T-NKLDEUC-2743.0`. On 2026-09-28 the fresh harness completed one terminal run
+as `uid0-proof`, closed its host listeners, and passed its post-cleanup TV
+health checks. Static firmware evidence confirms persistent `/opt` storage and
+boot consumers that execute or load `/opt` content. Offline analysis reproduces
+the abstract sink-to-consumer bridge, but neither an exact replaceable boot path
+nor malicious post-reboot execution has been demonstrated on the TV. The owner
+reports a separate one-shot defensive self-heal that replaced existing helpers;
+this publication has no independent live transcript or current device-byte
+readback for that change.
 
 ## Finding in one page
 
@@ -24,6 +31,13 @@ mount argument shape, but not the shell safety of the file contents. A command
 substitution in either credential therefore crosses from the Remote PC UI into
 a root shell evaluation.
 
+The retained `umount.smb.sh` contains a second instance of the same root cause:
+it substitutes the share name into a command evaluated by root `bash -c`.
+Static symbols connect that helper to `PS_Umount_Cifs` and Disconnect. Whether
+the credential file survives until a real disconnect invokes it is unresolved,
+and the inspected helper does not substitute the password on unmount. This is
+a source-validated conditional trigger, not a second live proof.
+
 The bounded proof used the password form only:
 
 ```text
@@ -36,8 +50,12 @@ owned by UID 0, and began with `uid=0(root) gid=0(root)`. Its result was encoded
 through exactly two SDB pushes, avoiding a target-file read or an invalid
 one-push existence inference.
 
-See [DISCLOSURE.md](DISCLOSURE.md) for the report. This README records the exact
-target gates and guarded reproduction contract.
+See [DISCLOSURE.md](DISCLOSURE.md) for the publication index, the
+[detailed report](reports/remote-pc-cifs-command-injection/remote-pc-cifs-command-injection.md),
+[REMEDIATION.md](REMEDIATION.md) for the compatibility-preserving fix,
+[BOOT-PERSISTENCE.md](BOOT-PERSISTENCE.md) for persistence evidence and limits,
+and [CANDIDATE-DEVICES.md](CANDIDATE-DEVICES.md) for vendor triage scope. This
+README records the exact target gates and guarded reproduction contract.
 
 ## Exact assessed artifacts
 
@@ -46,6 +64,7 @@ target gates and guarded reproduction contract.
 | Official firmware archive | `cb717ed98daf9580eb5b84bccbad5adac82f75dd021ed028f1ee1bb6c4abde32` |
 | Local rootfs tar | `a54c6b8e4ac739c92edda4b75a87ff42b7a100c9a974c85da0acbd8b9f337ce6` |
 | `mount.smb.sh` | `37aaf2f05bf714332a6bf8f14b543ac9584a1b9a051341674a74fc0dd753c57e` |
+| `umount.smb.sh` | `d0dffdaedd33243445a85019cbfadb8d281ab48d29b7a68d7eedec7f13ccc782` |
 | `ps_agent` | `402885bce04ca3a04c2cb322cbe83dd96d05e17457717b4627a85b0fdb004c33` |
 | `remotepc_uilauncher` | `b87e23127fe04cfab9e2c43468a99a4c4aa0b852fd5923de17104c3cf9d872da` |
 | `remotepc_rdp` | `5d5b8277b20cae7ec993be7ff8f556a5f04cdff07109beb025c0e377f4dff9e4` |
@@ -54,6 +73,12 @@ target gates and guarded reproduction contract.
 These hashes and conclusions bind the work to build 2743.0. Samsung source
 history, the first affected release, a fixed release, and backport status are
 unknown.
+
+Official Samsung support pages serve the same `T-NKLDEUC` firmware artifact to
+additional Q60T/Q6xT and TU8xxx model codes. They are high-priority
+[candidate devices](CANDIDATE-DEVICES.md), not separately verified affected
+products. Regional and adjacent firmware branches are listed there as weaker
+source-lineage candidates for Samsung to diff.
 
 ## Harness modes
 
@@ -172,9 +197,11 @@ No classifier result is retried.
 
 ## Explicit non-goals
 
-- No SMB share-name injection route.
+- No live SMB share-name injection attempt or claimed disconnect reachability.
 - No TV UI, pointer, key, or Remote PC field automation.
-- No persistent root shell, service, firmware write, package change, or UEP.
+- No reusable root shell, listener, key, implant, malicious boot payload, or
+  public copy of the owner-specific self-heal delivery payload.
+- No firmware-image write, package change, or UEP modification.
 - No affected-version claim beyond 2743.0.
 - No automatic target cleanup: deleting the saved Remote PC profile and
   revoking the allowed validation device are visual, manual tasks.

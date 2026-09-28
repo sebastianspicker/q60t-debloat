@@ -101,6 +101,53 @@ That established the claim the project needed: this Remote PC/CIFS path ran
 the bounded command as UID 0. It did not establish a root shell, persistence,
 arbitrary post-root capability, a flash change, or a firmware range.
 
+## The sink was larger than the one proof
+
+The live proof used the password-to-mount path, but the retained firmware held
+more context. `umount.smb.sh` performs the same final root shell evaluation
+after substituting the share name. Static symbols connect it to Disconnect.
+Whether a real disconnect reaches that second sink before the credential file
+is deleted remains unknown, so it is reported as a source-validated conditional
+trigger rather than a second live result.
+
+The distinction matters. The finding is not “one clever password.” It is a
+privileged interface that validates a command template, performs later
+substitutions from a lower-trust file, and then invokes a shell. Any durable fix
+has to remove that interpreter from mount and unmount while preserving valid
+SMB credentials as data.
+
+## Following root toward reboot—and stopping at the evidence boundary
+
+The retained image corrected an early assumption that nothing important ran
+from persistent data. `/opt` is persistent, `/home` aliases into it, and enabled
+services name scripts, binaries, and environment data below `/opt`. The
+clearest static example is a root service configured to run
+`/opt/etc/parseinfo.sh`. Other enabled services consume `/opt/usr/apps` or
+`/opt/tizen-mobile-ui-sh`.
+
+That gives a credible two-part mechanism: a root file write and an existing
+boot consumer. An inert offline sandbox showed that the parts compose. It did
+not prove that the vulnerable process could replace the exact path on the TV,
+that the file would pass DAC, SMACK, integrity, mount, and UEP controls, or that
+malicious content would run after a real reboot. Those missing facts stay
+missing in the public claim.
+
+## Using the flaw once to close itself
+
+The owner reports a deliberately paradoxical final step: the vulnerable path
+was used once as a maintenance bootstrap to replace the existing helpers with
+defensive versions. The design pinned the expected old and new hashes,
+preserved rollback bytes, changed no profile credentials, and added no service,
+listener, key, root shell, or boot hook.
+
+That is an owner report, not a substitute for evidence. The repository has
+offline simulated-device tests but no separate retained live deployment
+transcript or independent current-byte readback. Public documents therefore do
+not claim that Samsung firmware is fixed or that the TV's present state was
+verified in this publication. They describe the repair architecture—direct
+arguments, out-of-band credentials, and a typed privileged API—without
+publishing the owner-specific delivery payload.
+
 ## Why `tiz0wn`
 
 `q60t-debloat` described the starting task but not the repository that emerged.
@@ -116,13 +163,21 @@ directions, test the smallest claim, and stop when the evidence is sufficient.
 
 ## What comes next
 
-The repository now contains an offline-by-default one-shot harness. Its default
-mode only verifies pinned local firmware artifacts. Its Docker lab binds to the
-Mac and proves that the payload-shaped password remains literal across full RDP
-and SMB sessions. Live mode exists for a reviewed future session, but is
-guarded by exact identity checks, manual visual gates, one click, one
-classification, no retry, unconditional listener cleanup, and redacted
-evidence.
+The repository now contains the completed bounded live record, an
+offline-by-default one-shot harness, a read-only boot-analysis method, a
+detailed public disclosure, a candidate-device triage list, and a
+compatibility-preserving hardening proposal. The default mode still verifies
+pinned local firmware artifacts only. The Docker lab proves that
+payload-shaped credentials remain literal across RDP and SMB without
+contacting the TV. Any future device work remains guarded by exact identity,
+explicit authorization, manual visual gates, one trigger, one terminal
+classification, and redacted evidence.
+
+Samsung's public support pages map the same `T-NKLDEUC` package to other 2020
+Q6xT and TU8xxx model codes. That is a reason for vendor triage, not an excuse
+to claim an affected range. The next authoritative result should be a Samsung
+model/version matrix and a signed firmware release whose CIFS boundary never
+turns credential data into shell source.
 
 That is the lasting connection to the original debloating project: root was
 never the excuse to abandon reversibility. It was another change boundary to

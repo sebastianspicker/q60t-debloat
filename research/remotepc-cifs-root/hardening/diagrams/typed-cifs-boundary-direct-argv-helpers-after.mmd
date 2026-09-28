@@ -1,0 +1,24 @@
+flowchart LR
+    A[Remote PC profile data] --> B[Protected credential file]
+    A --> C[Existing CIFS request]
+    B --> D[Root privileged service]
+    C --> D
+    D --> E[Repaired mount or unmount helper]
+    E -->|fixed schema and canonical target| F[Direct argv]
+    B -->|credential reference only| F
+    F --> G[Fixed CIFS utility]
+    E -. denied .-> H[Shell and arbitrary executable]
+
+    subgraph LowerTrust[Lower-trust Remote PC boundary]
+        A
+        B
+        C
+    end
+
+    subgraph Privileged[UID 0 boundary]
+        D
+        E
+        F
+        G
+        H
+    end

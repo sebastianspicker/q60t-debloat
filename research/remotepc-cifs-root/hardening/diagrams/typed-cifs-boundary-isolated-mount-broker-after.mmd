@@ -1,0 +1,26 @@
+flowchart LR
+    A[Remote PC profile data] --> B[Typed request]
+    C[Protected credential handle] --> B
+    B --> D[Constrained CIFS broker]
+    D -->|fixed schema and executable| E[Broker mount namespace]
+    E --> F[CIFS mount]
+    D -->|opaque mount ID| A
+    D -. denied by label and namespace .-> G[Boot-consumed /opt paths]
+    D -. denied .-> H[Arbitrary executable and shell]
+
+    subgraph LowerTrust[Lower-trust Remote PC boundary]
+        A
+        B
+        C
+    end
+
+    subgraph Broker[Minimum privileged boundary]
+        D
+        E
+        F
+    end
+
+    subgraph OutsideAuthority[Outside broker authority]
+        G
+        H
+    end

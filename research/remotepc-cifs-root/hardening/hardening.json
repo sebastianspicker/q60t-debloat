@@ -1,0 +1,443 @@
+{
+  "documentType": "codex-security.hardening-analysis",
+  "schemaVersion": "1.0",
+  "analysisId": "hardening_20260929_remotepc_cifs",
+  "sourceEvidence": {
+    "kind": "document_collection",
+    "label": "Remote PC/CIFS disclosure, retained helpers, persistence analysis, and offline verification records",
+    "collectionSha256": "26820c6c2533ff06e5a7f6f788e4338ba60f9d55be6fe8e54724d9ae02a7c18b",
+    "artifactCount": 8,
+    "sourceDrift": "present"
+  },
+  "assessment": {
+    "outcome": "opportunities_identified",
+    "summary": "The evidence supports replacing the stringly root CIFS command boundary with typed, shell-free mount and unmount operations; writable boot-consumer integrity is a complementary control."
+  },
+  "constraints": {
+    "profile": "balanced",
+    "changeHorizons": [
+      "incremental",
+      "medium_term",
+      "foundational"
+    ],
+    "nonNegotiables": [
+      "Preserve supported SMB credentials and share names, including valid spaces, Unicode, and punctuation.",
+      "Remove shell interpretation from both mount and unmount paths.",
+      "Do not add a reusable privileged-access mechanism.",
+      "Keep target identity, authorization phrases, and owner-specific payloads private."
+    ],
+    "assumptions": [
+      "No measured performance, memory, or availability budget was supplied.",
+      "The first affected release, model range, and vendor-fixed release are unknown.",
+      "Exact on-device replaceability of boot-consumed /opt paths remains unresolved."
+    ]
+  },
+  "opportunities": [
+    {
+      "opportunityId": "typed-cifs-boundary",
+      "title": "Make privileged CIFS operations typed and shell-free",
+      "summary": "Own parsing, credential handling, target policy, and process creation at one privileged boundary instead of reparsing caller data as a shell program.",
+      "diagnosis": "Mount and unmount each receive a command-shaped string, perform substitutions after caller validation, and delegate interpretation to a root shell. That ownership split lets lower-trust data become code and makes lifecycle validation drift between the two operations.",
+      "evidence": [
+        {
+          "claimType": "observed",
+          "sourceKind": "poc",
+          "evidenceId": "E1",
+          "path": "research/remotepc-cifs-root/reports/remote-pc-cifs-command-injection/remote-pc-cifs-command-injection.md",
+          "claim": "One credential-derived command executed as UID 0 through the mount path on the assessed device."
+        },
+        {
+          "claimType": "observed",
+          "sourceKind": "source",
+          "evidenceId": "E2",
+          "path": "research/remotepc-cifs-root/reports/remote-pc-cifs-command-injection/remote-pc-cifs-command-injection.md",
+          "claim": "The retained mount helper substitutes credential and share values into a root bash -c command."
+        },
+        {
+          "claimType": "observed",
+          "sourceKind": "source",
+          "evidenceId": "E3",
+          "path": "research/remotepc-cifs-root/reports/remote-pc-cifs-command-injection/remote-pc-cifs-command-injection.md",
+          "claim": "The retained unmount helper independently substitutes the share value into root bash -c."
+        },
+        {
+          "claimType": "inferred",
+          "sourceKind": "experiment",
+          "evidenceId": "E4",
+          "path": "research/remotepc-cifs-root/BOOT-PERSISTENCE.md",
+          "claim": "Enabled consumers of persistent /opt content could turn an arbitrary root write into post-reboot execution if exact runtime paths are replaceable."
+        },
+        {
+          "claimType": "observed",
+          "sourceKind": "document",
+          "evidenceId": "E5",
+          "path": "research/remotepc-cifs-root/DISCLOSURE.md",
+          "claim": "The owner reports a one-shot defensive replacement, without an independent live transcript or current device readback in this task."
+        }
+      ],
+      "desiredInvariants": [
+        "Remote PC and credential-file values remain data through process creation.",
+        "The privileged component selects a fixed executable and a fixed option schema.",
+        "Credentials remain in a protected out-of-band channel and do not enter shell text, logs, or unintended process arguments.",
+        "Mount and disconnect validate the same canonical target and credential lifecycle.",
+        "Valid SMB character space is preserved independently of shell syntax.",
+        "Boot-critical content on persistent storage is authenticity-checked or not writable by the CIFS service context."
+      ],
+      "proposalPath": "proposals/typed-cifs-boundary.md",
+      "options": [
+        {
+          "optionId": "direct-argv-helpers",
+          "title": "Repair the existing helpers with direct argv",
+          "kind": "baseline",
+          "summary": "Keep the current service and scripts, but parse fixed fields, retain credentials out of band, and invoke mount and unmount directly without a shell.",
+          "diagramPaths": {
+            "before": "diagrams/typed-cifs-boundary-before.mmd",
+            "after": "diagrams/typed-cifs-boundary-direct-argv-helpers-after.mmd"
+          },
+          "evidenceCoverage": [
+            {
+              "evidenceId": "E1",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "Removing shell evaluation blocks the demonstrated mount route."
+            },
+            {
+              "evidenceId": "E2",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "The vulnerable mount helper is directly replaced."
+            },
+            {
+              "evidenceId": "E3",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "The equivalent unmount sink is directly replaced."
+            },
+            {
+              "evidenceId": "E4",
+              "effect": "mitigates",
+              "tacticalFixRequired": false,
+              "rationale": "The observed entry point can no longer write through a shell, but boot-consumer integrity remains separate."
+            }
+          ],
+          "tradeoffs": [
+            {
+              "dimension": "security",
+              "direction": "improves",
+              "confidence": "high",
+              "basis": "source-derived",
+              "assessment": "Direct execution removes shell parsing from both observed helpers, though future script call sites can recreate the pattern.",
+              "validationPlan": "Run the bounded regression corpus through mount and disconnect and verify no shell child is created."
+            },
+            {
+              "dimension": "performance",
+              "direction": "improves",
+              "confidence": "medium",
+              "basis": "source-derived",
+              "assessment": "Eliminating a shell process should remove one fork and parse step; the mount operation still dominates latency.",
+              "validationPlan": "Compare end-to-end mount and disconnect latency over at least 100 local-lab iterations."
+            },
+            {
+              "dimension": "memory",
+              "direction": "improves",
+              "confidence": "low",
+              "basis": "source-derived",
+              "assessment": "Removing the transient shell should modestly reduce peak process memory, with no retained state added.",
+              "validationPlan": "Measure peak RSS and process count during representative mount and disconnect operations."
+            },
+            {
+              "dimension": "reliability",
+              "direction": "improves",
+              "confidence": "medium",
+              "basis": "source-derived",
+              "assessment": "Arguments stop depending on shell tokenization, but script parsing and duplicated mount/unmount logic remain failure sources.",
+              "validationPlan": "Exercise success, authentication failure, cancellation, stale credential files, and disconnect cleanup."
+            },
+            {
+              "dimension": "operability",
+              "direction": "neutral",
+              "confidence": "medium",
+              "basis": "source-derived",
+              "assessment": "No new daemon or protocol is introduced; structured rejection telemetry should be added to existing logs.",
+              "validationPlan": "Confirm support logs identify field and policy failures without exposing credentials."
+            },
+            {
+              "dimension": "migration",
+              "direction": "improves",
+              "confidence": "high",
+              "basis": "source-derived",
+              "assessment": "This is the smallest image change and can preserve the current caller contract, but scripts remain a long-term maintenance boundary.",
+              "validationPlan": "Run the existing Remote PC compatibility matrix and perform image rollback to the prior helper set."
+            }
+          ],
+          "residualRisks": [
+            "Other privileged helpers can repeat the command-string pattern.",
+            "Duplicated parsing between mount and unmount can drift.",
+            "Enabled boot consumers of writable persistent content remain architectural risk."
+          ],
+          "implementationReadiness": {
+            "affectedComponents": [
+              "mount.smb.sh",
+              "umount.smb.sh",
+              "Remote PC shared-folder regression suite"
+            ],
+            "workPackages": [
+              "Replace string evaluation with direct argv and protected credential handling.",
+              "Unify canonical target and credential-file lifecycle checks.",
+              "Add compatibility and adversarial regression cases."
+            ],
+            "acceptanceCriteria": [
+              "Neither helper launches a shell.",
+              "Valid supported SMB values retain their literal meaning.",
+              "Mount and disconnect cleanup pass success and failure tests."
+            ],
+            "migrationNotes": [
+              "Ship mount and unmount changes in the same firmware image."
+            ],
+            "rollback": "Restore the prior signed image, not individual unverified helper bytes."
+          }
+        },
+        {
+          "optionId": "typed-privileged-api",
+          "title": "Replace the string method with a typed privileged API",
+          "kind": "structural",
+          "summary": "Move parsing, option policy, credential lifetime, mount identifiers, and direct process creation into one owned privileged component.",
+          "diagramPaths": {
+            "before": "diagrams/typed-cifs-boundary-before.mmd",
+            "after": "diagrams/typed-cifs-boundary-typed-privileged-api-after.mmd"
+          },
+          "evidenceCoverage": [
+            {
+              "evidenceId": "E1",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "The demonstrated string-to-shell edge is removed; direct helper repair is still needed during migration."
+            },
+            {
+              "evidenceId": "E2",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "Credential data no longer enters a command string."
+            },
+            {
+              "evidenceId": "E3",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "Disconnect uses a returned mount identifier rather than reparsing share data."
+            },
+            {
+              "evidenceId": "E4",
+              "effect": "mitigates",
+              "tacticalFixRequired": false,
+              "rationale": "The entry primitive is removed, while boot-path integrity still requires its own work."
+            }
+          ],
+          "tradeoffs": [
+            {
+              "dimension": "security",
+              "direction": "improves",
+              "confidence": "high",
+              "basis": "source-derived",
+              "assessment": "One component owns schema validation and process creation, eliminating command strings and reducing policy drift between mount and disconnect.",
+              "validationPlan": "Fuzz the typed decoder, verify fixed executable selection, and replay the full adversarial corpus end to end."
+            },
+            {
+              "dimension": "performance",
+              "direction": "neutral",
+              "confidence": "low",
+              "basis": "hypothetical",
+              "assessment": "Typed serialization adds bounded parsing but removes shell startup; SMB and mount I/O should dominate, but no measurements exist.",
+              "validationPlan": "Measure p50, p95, and p99 mount and disconnect latency against the repaired-helper baseline."
+            },
+            {
+              "dimension": "memory",
+              "direction": "neutral",
+              "confidence": "low",
+              "basis": "hypothetical",
+              "assessment": "Bounded request objects and a small mount-state table replace transient shell state; retained mount identifiers require explicit limits.",
+              "validationPlan": "Measure steady and peak RSS with zero, one, and maximum supported concurrent shares."
+            },
+            {
+              "dimension": "reliability",
+              "direction": "improves",
+              "confidence": "medium",
+              "basis": "source-derived",
+              "assessment": "A returned mount identifier and single cleanup owner remove reconstruction and stale-file ambiguity, but protocol-version skew must fail safely.",
+              "validationPlan": "Test restart recovery, duplicate requests, cancellation, stale identifiers, partial mounts, and service-version mismatch."
+            },
+            {
+              "dimension": "operability",
+              "direction": "improves",
+              "confidence": "medium",
+              "basis": "hypothetical",
+              "assessment": "Structured error codes and redacted audit events improve supportability, while the API requires ownership and version observability.",
+              "validationPlan": "Run incident exercises using only redacted service logs and confirm each failure class is distinguishable."
+            },
+            {
+              "dimension": "migration",
+              "direction": "regresses",
+              "confidence": "high",
+              "basis": "source-derived",
+              "assessment": "Launcher, client library, privileged service, and tests must move together or support an explicitly bounded compatibility period.",
+              "validationPlan": "Test mixed-version failure behavior and staged rollout, with downgrade blocked once the old method is removed."
+            }
+          ],
+          "residualRisks": [
+            "Decoder, canonicalization, and kernel mount interfaces remain privileged attack surfaces.",
+            "A compatibility shim could retain the old command-string risk if not time-bounded.",
+            "Boot-consumed writable content requires separate integrity hardening."
+          ],
+          "implementationReadiness": {
+            "affectedComponents": [
+              "Remote PC launcher",
+              "privileged-service client library",
+              "ps_agent CIFS method",
+              "mount state and credential lifecycle",
+              "firmware integration tests"
+            ],
+            "workPackages": [
+              "Define a versioned typed request and response schema.",
+              "Implement canonical target and fixed option policy in the privileged service.",
+              "Return opaque mount identifiers for disconnect.",
+              "Retire command-shaped helper methods after compatibility rollout."
+            ],
+            "acceptanceCriteria": [
+              "No CIFS request contains a caller-selected executable, raw option string, or credential value.",
+              "Disconnect needs only an opaque service-issued identifier.",
+              "Mixed-version and rollback behavior fail closed without orphaning mounts."
+            ],
+            "migrationNotes": [
+              "Deploy the direct-argv helper repair before or with the first typed client.",
+              "Instrument old-method use and remove the method after one bounded release window."
+            ],
+            "rollback": "Rollback the full signed client/service image pair while retaining the direct-argv tactical fix."
+          }
+        },
+        {
+          "optionId": "isolated-mount-broker",
+          "title": "Put CIFS mounting in an isolated broker",
+          "kind": "isolation",
+          "summary": "Use a narrowly privileged process or service with a typed protocol, constrained filesystem view, fixed executable, and bounded mount namespace.",
+          "diagramPaths": {
+            "before": "diagrams/typed-cifs-boundary-before.mmd",
+            "after": "diagrams/typed-cifs-boundary-isolated-mount-broker-after.mmd"
+          },
+          "evidenceCoverage": [
+            {
+              "evidenceId": "E1",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "The broker has no shell-evaluation path; the existing helpers still need repair until cutover."
+            },
+            {
+              "evidenceId": "E2",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "The vulnerable helper is removed from the active path."
+            },
+            {
+              "evidenceId": "E3",
+              "effect": "addresses",
+              "tacticalFixRequired": true,
+              "rationale": "Unmount is broker-owned and keyed by broker state."
+            },
+            {
+              "evidenceId": "E4",
+              "effect": "mitigates",
+              "tacticalFixRequired": false,
+              "rationale": "Confinement can deny writes to boot-consumed /opt paths even if the broker is compromised."
+            }
+          ],
+          "tradeoffs": [
+            {
+              "dimension": "security",
+              "direction": "improves",
+              "confidence": "medium",
+              "basis": "source-derived",
+              "assessment": "A reduced label, namespace, and filesystem view can contain parser or mount-helper failures beyond this injection, assuming the platform enforces those controls.",
+              "validationPlan": "Test denied access to boot paths, executable substitution, unrelated devices, network destinations, and ambient capabilities."
+            },
+            {
+              "dimension": "performance",
+              "direction": "regresses",
+              "confidence": "low",
+              "basis": "hypothetical",
+              "assessment": "A broker adds one IPC hop and request serialization; mount I/O may hide the cost, but frequent reconnects could expose it.",
+              "validationPlan": "Benchmark cold and warm mounts, reconnect storms, and maximum supported concurrent shares."
+            },
+            {
+              "dimension": "memory",
+              "direction": "regresses",
+              "confidence": "medium",
+              "basis": "hypothetical",
+              "assessment": "A resident broker, state table, and IPC buffers add bounded steady memory.",
+              "validationPlan": "Set an explicit RSS and per-mount state budget, then measure idle and peak use."
+            },
+            {
+              "dimension": "reliability",
+              "direction": "unknown",
+              "confidence": "low",
+              "basis": "hypothetical",
+              "assessment": "Failure isolation improves, but broker restart, namespace ownership, and orphaned-mount recovery create new state transitions.",
+              "validationPlan": "Inject crashes at every operation boundary and verify deterministic recovery without leaked mounts or credentials."
+            },
+            {
+              "dimension": "operability",
+              "direction": "regresses",
+              "confidence": "medium",
+              "basis": "hypothetical",
+              "assessment": "The new service needs health, policy, audit, crash, and lifecycle observability plus incident runbooks.",
+              "validationPlan": "Exercise upgrade, restart, policy denial, and degraded-service runbooks on representative devices."
+            },
+            {
+              "dimension": "migration",
+              "direction": "regresses",
+              "confidence": "high",
+              "basis": "source-derived",
+              "assessment": "This changes deployment, labels, IPC, mount ownership, and recovery semantics across multiple firmware components.",
+              "validationPlan": "Use a staged signed-image rollout with a kill switch and full-image rollback rehearsal."
+            }
+          ],
+          "residualRisks": [
+            "The broker and its protocol become a new privileged security boundary.",
+            "Incorrect namespace propagation or label policy can break Shared Folder behavior.",
+            "Isolation does not replace input schema validation or boot-content integrity checks."
+          ],
+          "implementationReadiness": {
+            "affectedComponents": [
+              "Remote PC client",
+              "new or refactored CIFS broker",
+              "SMACK and service policy",
+              "mount namespaces",
+              "boot and recovery integration"
+            ],
+            "workPackages": [
+              "Threat-model broker authority and namespace propagation.",
+              "Implement the typed protocol and minimum capability set.",
+              "Add crash recovery, redacted audit, and resource bounds.",
+              "Migrate callers and remove old privileged methods."
+            ],
+            "acceptanceCriteria": [
+              "Broker compromise cannot modify boot-consumed /opt content or execute arbitrary programs.",
+              "Crash recovery leaves no credential files or unowned mounts.",
+              "Shared Folder remains compatible across the supported matrix."
+            ],
+            "migrationNotes": [
+              "Use only if platform containment can be validated on the product kernel and policy set."
+            ],
+            "rollback": "Rollback the complete signed broker/client/policy image while retaining the direct-argv tactical repair."
+          }
+        }
+      ],
+      "recommendedOptionId": "typed-privileged-api",
+      "recommendation": "Use direct-argv helpers immediately, then move to a typed privileged API as the vendor-grade design. Choose an isolated broker only when broader containment justifies its lifecycle and resource costs."
+    }
+  ],
+  "openQuestions": [
+    "Which SMB character, length, and Unicode-normalization rules are contractual across all supported clients?",
+    "What credential-file or file-descriptor interface is supported by the shipped CIFS stack?",
+    "When exactly does disconnect run, and what owns credential deletion on every path?",
+    "Which /opt consumers are present, writable, label-compatible, and integrity-checked on representative devices?",
+    "What signed-image rollout and mixed-version compatibility window can Samsung support?"
+  ]
+}

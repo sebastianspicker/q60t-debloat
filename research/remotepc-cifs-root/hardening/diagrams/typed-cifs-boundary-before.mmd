@@ -1,0 +1,23 @@
+flowchart LR
+    A[Remote PC profile data] --> B[Temporary credential file]
+    A --> C[Command-shaped CIFS request]
+    B --> D[Root privileged service]
+    C -->|caller and template check| D
+    D --> E[Mount or unmount helper]
+    E -->|post-check substitution| F[root shell parser]
+    F --> G[Fixed CIFS utility]
+    F -. arbitrary root command .-> H[System and persistent storage]
+
+    subgraph LowerTrust[Lower-trust Remote PC boundary]
+        A
+        B
+        C
+    end
+
+    subgraph Privileged[UID 0 boundary]
+        D
+        E
+        F
+        G
+        H
+    end

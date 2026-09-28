@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f1efe8">
+    <meta name="color-scheme" content="light">
+    <meta
+      name="description"
+      content="Evidence-first Samsung Q60T research: a bounded Remote PC/CIFS UID-0 proof, persistence analysis, and a compatibility-preserving fix for firmware 2743.0."
+    >
+    <meta property="og:title" content="tiz0wn — evidence-first Q60T research">
+    <meta
+      property="og:description"
+      content="One exact television, one bounded UID-0 proof, and the evidence-graded path from privileged sink to defensive fix."
+    >
+    <meta property="og:type" content="website">
+    <title>tiz0wn — evidence-first Q60T research</title>
+    <script>document.documentElement.classList.add("js");</script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="site.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to the research</a>
+
+    <header class="site-header">
+      <div class="site-header__inner page-shell">
+        <a class="wordmark" href="#research" aria-label="tiz0wn, home">tiz0wn</a>
+
+        <div class="nav-disclosure" data-navigation>
+          <button
+            class="nav-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="primary-navigation"
+          >
+            <span>Menu</span>
+            <svg aria-hidden="true" viewBox="0 0 30 18">
+              <path d="M1 5.25h28M1 12.75h28" />
+            </svg>
+          </button>
+          <nav class="site-nav" id="primary-navigation" aria-label="Primary navigation">
+            <a href="#research">Research</a>
+            <a href="#chain">The chain</a>
+            <a href="#remediation">The fix</a>
+            <a href="#record">Record</a>
+            <a href="#runbook">Runbook</a>
+            <a href="https://github.com/sebastianspicker/tiz0wn">GitHub</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section class="hero page-shell" id="research" aria-labelledby="hero-title">
+        <div class="section-marker hero__marker" aria-hidden="true">
+          <span class="section-marker__index">E/01</span>
+          <span class="section-marker__line"></span>
+        </div>
+
+        <div class="hero__copy">
+          <h1 id="hero-title">
+            A television.<br>
+            One password field.<br>
+            <span>Root.</span>
+          </h1>
+          <p class="hero__lead">
+            On one exact Samsung Q60T firmware, Remote PC credential text
+            crossed into a privileged shell. The proof stopped at a volatile
+            UID-0 marker; the later defensive self-heal installed no reusable
+            access.
+          </p>
+        </div>
+
+        <dl class="target-record" aria-label="Exact assessed target">
+          <div>
+            <dt>Target</dt>
+            <dd>GQ55Q60TGUXZG</dd>
+          </div>
+          <div>
+            <dt>Firmware</dt>
+            <dd>T-NKLDEUC-2743.0</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>Live-validated · 2026-09-27</dd>
+          </div>
+        </dl>
+
+        <div class="hero__actions" aria-label="Finding links">
+          <a
+            class="text-link text-link--primary"
+            href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/reports/remote-pc-cifs-command-injection/remote-pc-cifs-command-injection.md"
+          >
+            <span>Read the finding</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M4 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+          <a
+            class="text-link"
+            href="https://github.com/sebastianspicker/tiz0wn/tree/main/research/remotepc-cifs-root"
+          >
+            <span>Inspect the evidence</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M4 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      <section class="proof-band" aria-labelledby="proof-title">
+        <div class="proof-band__inner page-shell">
+          <div class="proof-band__heading">
+            <h2 id="proof-title">Bounded proof</h2>
+            <span class="proof-band__rule" aria-hidden="true"></span>
+          </div>
+          <code class="proof-band__result">uid=0(root) gid=0(root)</code>
+          <ul class="proof-band__limits" aria-label="Limits of the proof">
+            <li>Persistence mechanism modeled</li>
+            <li>No reusable root shell installed</li>
+            <li>Owner-reported helper remediation</li>
+            <li>No affected-version range</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="dossier-section page-shell" id="chain" aria-labelledby="chain-title">
+        <div class="section-grid">
+          <div class="section-marker section-marker--section" aria-hidden="true">
+            <span class="section-marker__index">E/02</span>
+            <span class="section-marker__label">The chain</span>
+            <span class="section-marker__line"></span>
+          </div>
+
+          <div class="section-body chain-body">
+            <header class="section-intro">
+              <h2 class="section-heading" id="chain-title">
+                Five boundaries.<br>
+                One <span>unsafe substitution.</span>
+              </h2>
+              <p>The password was data until a privileged helper made it shell.</p>
+            </header>
+
+            <ol class="chain-route" aria-label="Remote PC to UID-0 proof chain">
+              <li class="chain-step">
+                <span class="chain-step__index">01</span>
+                <h3>Remote PC</h3>
+                <p>Password field</p>
+                <span class="chain-step__track" aria-hidden="true">
+                  <span class="chain-step__dot"></span>
+                  <svg class="chain-step__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </li>
+              <li class="chain-step">
+                <span class="chain-step__index">02</span>
+                <h3>Profile</h3>
+                <p>Raw credential text</p>
+                <span class="chain-step__track" aria-hidden="true">
+                  <span class="chain-step__dot"></span>
+                  <svg class="chain-step__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </li>
+              <li class="chain-step">
+                <span class="chain-step__index">03</span>
+                <h3>Shared Folder</h3>
+                <p>SAMBA_MOUNT</p>
+                <span class="chain-step__track" aria-hidden="true">
+                  <span class="chain-step__dot"></span>
+                  <svg class="chain-step__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </li>
+              <li class="chain-step chain-step--sink">
+                <span class="chain-step__index">04</span>
+                <h3>Privileged CIFS</h3>
+                <p>mount.smb.sh</p>
+                <span class="chain-step__track" aria-hidden="true">
+                  <span class="chain-step__dot"></span>
+                  <svg class="chain-step__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+                <code class="chain-step__code">bash -c "$UTIL $UTIL_OPT"</code>
+              </li>
+              <li class="chain-step chain-step--last">
+                <span class="chain-step__index">05</span>
+                <h3>Bounded proof</h3>
+                <p>uid0-proof</p>
+                <span class="chain-step__track" aria-hidden="true">
+                  <span class="chain-step__dot"></span>
+                </span>
+              </li>
+            </ol>
+
+            <ul class="chain-notes" aria-label="Evidence annotations">
+              <li>RDP required · VNC excluded</li>
+              <li>One physical Shared Folder click</li>
+              <li>Fresh marker · exactly two SDB pushes</li>
+              <li>Mount live · unmount source-validated</li>
+            </ul>
+
+            <div class="section-action">
+              <a
+                class="text-link text-link--primary"
+                href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/reports/remote-pc-cifs-command-injection/remote-pc-cifs-command-injection.md"
+              >
+                <span>Open the disclosure</span>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 12h14M13 6l6 6-6 6" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="dossier-section remediation-section page-shell"
+        id="remediation"
+        aria-labelledby="remediation-title"
+      >
+        <div class="section-grid">
+          <div class="section-marker section-marker--section" aria-hidden="true">
+            <span class="section-marker__index">E/03</span>
+            <span class="section-marker__label">From sink to fix</span>
+            <span class="section-marker__line"></span>
+          </div>
+
+          <div class="section-body remediation-body">
+            <header class="section-intro remediation-intro">
+              <h2 class="section-heading" id="remediation-title">
+                Keep the data.<br>
+                Remove the <span>interpreter.</span>
+              </h2>
+              <p>
+                The stable fix preserves valid SMB credentials and share names
+                while making it impossible for either helper to parse them as code.
+              </p>
+            </header>
+
+            <div class="research-lanes" aria-labelledby="fix-lanes-title">
+              <h3 id="fix-lanes-title">Four claims. Four evidence boundaries.</h3>
+
+              <article class="research-lane research-lane--validated">
+                <h4>Privileged sinks</h4>
+                <p>Password-to-mount ran as UID 0. Unmount contains the same share-name shell sink; its disconnect timing remains unresolved.</p>
+                <span class="research-lane__status">Live + source</span>
+                <a
+                  class="lane-link"
+                  href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/reports/remote-pc-cifs-command-injection/remote-pc-cifs-command-injection.md"
+                >
+                  <span>Read full report</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </article>
+
+              <article class="research-lane">
+                <h4>Persistence bridge</h4>
+                <p>Persistent /opt has enabled boot consumers. The mechanism composes offline; exact TV path replacement and post-reboot attacker execution are unproven.</p>
+                <span class="research-lane__status">Static + offline</span>
+                <a
+                  class="lane-link"
+                  href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/BOOT-PERSISTENCE.md"
+                >
+                  <span>Review boundary</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </article>
+
+              <article class="research-lane">
+                <h4>One-shot self-heal</h4>
+                <p>The owner reports replacing existing helpers defensively. No public delivery code, reusable access, independent transcript, or current byte readback is claimed.</p>
+                <span class="research-lane__status">Owner-reported</span>
+                <a
+                  class="lane-link"
+                  href="https://github.com/sebastianspicker/tiz0wn/blob/main/docs/backdoor-risk-assessment.md"
+                >
+                  <span>See risk status</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </article>
+
+              <article class="research-lane">
+                <h4>Vendor fix</h4>
+                <p>Use typed mount and disconnect requests, direct argv, out-of-band credentials, canonical targets, and integrity controls for boot-consumed data.</p>
+                <span class="research-lane__status">Proposed</span>
+                <a
+                  class="lane-link"
+                  href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/REMEDIATION.md"
+                >
+                  <span>Inspect design</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </article>
+            </div>
+
+            <div class="section-action remediation-actions">
+              <a
+                class="text-link text-link--primary"
+                href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/CANDIDATE-DEVICES.md"
+              >
+                <span>Review candidate device scope</span>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 12h14M13 6l6 6-6 6" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="dossier-section record-section page-shell"
+        id="record"
+        aria-labelledby="record-title"
+      >
+        <div class="section-grid">
+          <div class="section-marker section-marker--section" aria-hidden="true">
+            <span class="section-marker__index">E/04</span>
+            <span class="section-marker__label">The record</span>
+            <span class="section-marker__line"></span>
+          </div>
+
+          <div class="section-body record-body">
+            <header class="section-intro record-intro">
+              <h2 class="section-heading" id="record-title">
+                <span>Root</span> was not the first question.
+              </h2>
+              <p>
+                The shortest path appeared only after the exact firmware
+                closed the easy stories.
+              </p>
+            </header>
+
+            <ol class="research-timeline" aria-label="Project investigation sequence">
+              <li class="timeline-entry">
+                <span class="timeline-entry__index">01</span>
+                <h3>Debloat</h3>
+                <p>Measure first.<br>Change one package.</p>
+                <span class="timeline-entry__track" aria-hidden="true">
+                  <span class="timeline-entry__dot"></span>
+                  <svg class="timeline-entry__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </li>
+              <li class="timeline-entry">
+                <span class="timeline-entry__index">02</span>
+                <h3>Exact firmware</h3>
+                <p>Verify 2743.0.<br>Inspect what shipped.</p>
+                <span class="timeline-entry__track" aria-hidden="true">
+                  <span class="timeline-entry__dot"></span>
+                  <svg class="timeline-entry__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </li>
+              <li class="timeline-entry">
+                <span class="timeline-entry__index">03</span>
+                <h3>Mali routes</h3>
+                <p>Stop at unmet<br>prerequisite gates.</p>
+                <span class="timeline-entry__track" aria-hidden="true">
+                  <span class="timeline-entry__dot"></span>
+                  <svg class="timeline-entry__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </li>
+              <li class="timeline-entry timeline-entry--to-result">
+                <span class="timeline-entry__index">04</span>
+                <h3>Remote PC</h3>
+                <p>Trace credential text<br>to privileged CIFS.</p>
+                <span class="timeline-entry__track" aria-hidden="true">
+                  <span class="timeline-entry__dot"></span>
+                  <svg class="timeline-entry__connector" aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M3 12h17M14 6l6 6-6 6" />
+                  </svg>
+                </span>
+              </li>
+              <li class="timeline-entry timeline-entry--result">
+                <span class="timeline-entry__index">05</span>
+                <h3>UID 0</h3>
+                <p>Classify one<br>bounded command.</p>
+                <span class="timeline-entry__track" aria-hidden="true">
+                  <span class="timeline-entry__dot"></span>
+                </span>
+              </li>
+            </ol>
+
+            <div class="research-lanes" aria-labelledby="lanes-title">
+              <h3 id="lanes-title">Three lanes. Separate contracts.</h3>
+
+              <article class="research-lane research-lane--validated">
+                <h4>Remote PC / CIFS</h4>
+                <p>Root command proof on the exact assessed firmware.</p>
+                <span class="research-lane__status">Live-validated</span>
+                <a
+                  class="lane-link"
+                  href="https://github.com/sebastianspicker/tiz0wn/tree/main/research/remotepc-cifs-root"
+                >
+                  <span>Read finding</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </article>
+
+              <article class="research-lane">
+                <h4>Mali research</h4>
+                <p>Target-specific CVE routes stopped before a live exploit result.</p>
+                <span class="research-lane__status">Inconclusive</span>
+                <a
+                  class="lane-link"
+                  href="https://github.com/sebastianspicker/tiz0wn/blob/main/docs/mali-final-poc-live-checkpoint-2026-09-27.md"
+                >
+                  <span>Review record</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </article>
+
+              <article class="research-lane">
+                <h4>Reversible SDB</h4>
+                <p>Inventory and one-package changes with rollback evidence.</p>
+                <span class="research-lane__status">Offline-first</span>
+                <a
+                  class="lane-link"
+                  href="https://github.com/sebastianspicker/tiz0wn/tree/main/scripts"
+                >
+                  <span>Open scripts</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M4 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="dossier-section runbook-section page-shell"
+        id="runbook"
+        aria-labelledby="runbook-title"
+      >
+        <div class="section-grid">
+          <div class="section-marker section-marker--section" aria-hidden="true">
+            <span class="section-marker__index">E/05</span>
+            <span class="section-marker__label">Runbook</span>
+            <span class="section-marker__line"></span>
+          </div>
+
+          <div class="section-body runbook-body">
+            <header class="section-intro runbook-intro">
+              <h2 class="section-heading" id="runbook-title">
+                Start with the TV <span>out of reach.</span>
+              </h2>
+              <p>
+                The clean-checkout syntax check is offline and deliberately
+                unable to contact the TV.
+              </p>
+            </header>
+
+            <div class="command-panel" aria-label="Safe local check command">
+              <div class="command-panel__heading">
+                <span>Safe local check</span>
+                <span aria-hidden="true"></span>
+              </div>
+              <div class="command-panel__body">
+                <code id="safe-check-command">make -C research/remotepc-cifs-root syntax</code>
+                <button
+                  class="copy-button"
+                  type="button"
+                  data-copy-target="safe-check-command"
+                  aria-describedby="copy-status"
+                >
+                  <span>Copy command</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <rect x="8" y="8" width="11" height="11" />
+                    <path d="M16 8V5H5v11h3" />
+                  </svg>
+                </button>
+              </div>
+              <span class="visually-hidden" id="copy-status" aria-live="polite"></span>
+            </div>
+
+            <div class="runbook-facts">
+              <section aria-labelledby="runs-title">
+                <h3 id="runs-title">It runs</h3>
+                <ul>
+                  <li>Python syntax compilation</li>
+                  <li>Shell syntax checks</li>
+                  <li>Local tracked files only</li>
+                  <li>No target access</li>
+                </ul>
+              </section>
+              <section aria-labelledby="avoids-title">
+                <h3 id="avoids-title">It does not use</h3>
+                <ul>
+                  <li>Network</li>
+                  <li>Docker</li>
+                  <li>A device</li>
+                  <li>Private firmware</li>
+                  <li>Target configuration</li>
+                  <li>.NET or signing</li>
+                </ul>
+              </section>
+            </div>
+
+            <aside class="live-boundary" aria-labelledby="live-boundary-title">
+              <h3 id="live-boundary-title">Before any live work</h3>
+              <p>
+                Owned device <span>·</span> Exact target <span>·</span>
+                Trusted network <span>·</span> Reviewed procedure <span>·</span>
+                Explicit authorization
+              </p>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner page-shell">
+        <div class="site-footer__lead">
+          <a class="wordmark wordmark--footer" href="#research" aria-label="tiz0wn, home">
+            tiz0wn
+          </a>
+          <p>Evidence first. One exact build. No claim beyond the proof.</p>
+        </div>
+
+        <div class="site-footer__rule" aria-hidden="true"></div>
+
+        <nav class="footer-nav" aria-label="Research sources">
+          <a href="https://github.com/sebastianspicker/tiz0wn/blob/main/docs/from-debloating-to-tiz0wn.md">
+            Project story
+          </a>
+          <a href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/DISCLOSURE.md">
+            Remote PC disclosure
+          </a>
+          <a href="https://github.com/sebastianspicker/tiz0wn/blob/main/research/remotepc-cifs-root/REMEDIATION.md">
+            Remediation architecture
+          </a>
+          <a href="https://github.com/sebastianspicker/tiz0wn/blob/main/docs/firmware-analysis.md">
+            Firmware analysis
+          </a>
+          <a href="https://github.com/sebastianspicker/tiz0wn/blob/main/docs/mali-final-poc-live-checkpoint-2026-09-27.md">
+            Mali record
+          </a>
+          <a href="https://github.com/sebastianspicker/tiz0wn">GitHub</a>
+        </nav>
+
+        <div class="site-footer__legal">
+          <p>
+            Samsung and Tizen are used for identification only. This project
+            is not affiliated with or endorsed by Samsung.
+          </p>
+          <a href="https://github.com/sebastianspicker/tiz0wn/blob/main/LICENSE">
+            MIT License
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

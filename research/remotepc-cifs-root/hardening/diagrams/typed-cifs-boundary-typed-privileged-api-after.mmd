@@ -1,0 +1,24 @@
+flowchart LR
+    A[Remote PC profile data] --> B[Typed MountRequest]
+    C[Protected credential handle] --> B
+    B --> D[Privileged CIFS API]
+    D -->|schema, canonical target, fixed options| E[Direct mount syscall or argv]
+    E --> F[CIFS mount]
+    D -->|opaque mount ID| A
+    A --> G[Typed DisconnectRequest]
+    G --> D
+    D -. no command-string method .-> H[Shell parser]
+
+    subgraph LowerTrust[Lower-trust Remote PC boundary]
+        A
+        B
+        C
+        G
+    end
+
+    subgraph Privileged[Owned CIFS boundary]
+        D
+        E
+        F
+        H
+    end
