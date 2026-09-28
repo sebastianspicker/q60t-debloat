@@ -35,13 +35,13 @@ source trace, offline harness, and guarded reproduction contract.
 
 ## Safe local checks
 
-The Remote PC harness is offline by default. Its default command reads only the
-local rootfs tar and does not load TV configuration, open a socket, invoke SDB,
-or start Docker:
+The Remote PC harness is offline by default. Its default command requires a
+separately obtained copy of the exact rootfs tar at the documented private
+path. It reads only that local archive and does not load TV configuration,
+open a socket, invoke SDB, or start Docker:
 
 ```bash
 make -C research/remotepc-cifs-root dry-run
-make -C research/remotepc-cifs-root test
 make -C research/remotepc-cifs-root lab-test  # services bind to 127.0.0.1
 ```
 
@@ -64,7 +64,7 @@ not expose RDP, SMB, SDB, or TV-control ports to the Internet.
 |---|---|
 | [`research/remotepc-cifs-root/`](research/remotepc-cifs-root/) | Validated Remote PC/CIFS finding and offline-first one-shot harness |
 | [`docs/firmware-analysis.md`](docs/firmware-analysis.md) | Exact firmware extraction and static-analysis findings |
-| [`research/mali-cve-2022-46395/`](research/mali-cve-2022-46395/) | Separate, firmware-bound Mali research and offline tests |
+| [`research/mali-cve-2022-46395/`](research/mali-cve-2022-46395/) | Separate, firmware-bound Mali research and guarded offline tooling |
 | [`scripts/`](scripts/) | Explicit-target SDB inventory and one-package removal workflow |
 | [`templates/`](templates/) | Baseline, rollback, compatibility, and change records |
 | [`evidence/`](evidence/) | Private run output; identifying evidence is gitignored |

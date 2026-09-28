@@ -2,7 +2,7 @@
 
 Status: live-validated on one owner-controlled Samsung GQ55Q60TGUXZG running
 `T-NKLDEUC-2743.0`; the fresh harness in this directory has passed its offline
-and Mac-local tests but has not been run against the TV.
+audit and Mac-local lab validation but has not been run against the TV.
 
 ## Finding in one page
 
@@ -36,8 +36,8 @@ owned by UID 0, and began with `uid=0(root) gid=0(root)`. Its result was encoded
 through exactly two SDB pushes, avoiding a target-file read or an invalid
 one-push existence inference.
 
-See [DISCLOSURE.md](DISCLOSURE.md) for the report and
-[LIVE-CHECKPOINT.md](LIVE-CHECKPOINT.md) for the exact handoff boundary.
+See [DISCLOSURE.md](DISCLOSURE.md) for the report. This README records the exact
+target gates and guarded reproduction contract.
 
 ## Exact assessed artifacts
 
@@ -74,7 +74,6 @@ shell anchors inside `private/fw-analysis/work/rootfs.tar`. It does not read
 ### 2. Local lab: Mac only
 
 ```bash
-make -C research/remotepc-cifs-root test
 make -C research/remotepc-cifs-root lab-test
 ```
 
@@ -103,10 +102,10 @@ that exact ID. Reusing a pre-existing image is deliberately unsupported.
 
 ### 3. Live: interactive, exact target only
 
-Do not run this mode until reviewing the diff, tests, and
-[LIVE-CHECKPOINT.md](LIVE-CHECKPOINT.md). It requires a private
-`config/tv.env` containing the exact model, firmware, SDB serial, Developer
-Mode host address, and SHA-256 of the API's exact `device.id` value.
+Do not run this mode until reviewing this README, [DISCLOSURE.md](DISCLOSURE.md),
+the exact target gates, and the one-trigger contract. It requires a private
+`config/tv.env` containing the exact model, firmware, SDB serial, Developer Mode
+host address, and SHA-256 of the API's exact `device.id` value.
 
 After an explicitly authorized read-only `scripts/03-tv-info.sh` capture, hash
 the private response without printing its raw identifier:

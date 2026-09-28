@@ -10,11 +10,10 @@
 # NOTE: on this device's firmware (T-NKLDEUC-2743.0), both `sdb uninstall`
 # and `vd_appuninstall` were empirically observed to return exit code 0 while
 # leaving the live app list completely unchanged, for every store-app prefix
-# tested — see evidence/root-feasibility-2026-09-26.md (the raw before/after
-# captures are private, under evidence/runs/*-remove-apps*/). A zero exit
-# code is NOT evidence of removal (§7.4). This script exists to make that
-# observation reproducible and safe to repeat — it is mainly a harness, not
-# a working debloat tool on this build.
+# tested. The raw before/after captures are private. A zero exit code is NOT
+# evidence of removal (§7.4). This script exists to make that observation
+# reproducible and safe to repeat — it is mainly a harness, not a working
+# debloat tool on this build.
 #
 # Usage:
 #   METHOD=uninstall|vd CONTINUE_ON_REFUSAL=0|1 \

@@ -1,7 +1,6 @@
 # Evidence contains device identifiers (serial, MAC, DUID, tokens). Never commit.
 evidence/*
 !evidence/.gitkeep
-!evidence/README.md
 
 # Local device config holds your TV's IP and host IP.
 config/tv.env
@@ -11,12 +10,71 @@ config/tv.env
 *-private.*
 tv-info*.json
 
-# Local agent handoff, isolated builds, and diagnostic traces
+# Tool and editor state
+.codacy/
+.repowise/
+.codegraph/
+.claude/
+.codex/
+.serena/
+.impeccable/
+.cursor/
+.aider*
+.continue/
+.windsurf/
+.idea/
+.vscode/
+.mcp.json
+.history/
+.cache/
+
+# Agent instructions, handoffs, and generated state
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursorrules
+.github/copilot-instructions.md
 .agents/
+
+# Linked worktrees and nested checkouts
+.worktrees/
+worktrees/
+.claude/worktrees/
+.codex/worktrees/
+
+# Development tests and coverage output
+**/test_*.py
+**/test_*.c
+**/tests/
+pytest.ini
+conftest.py
+.coverage
+.coveragerc
+htmlcov/
+
+# Local-only helper scripts
+/local/
+/dev-scripts/
+/scripts/local/
+*.local.sh
+
+# Drafts, planning documents, and rewrite staging
+/drafts/
+/docs/drafts/
+/adr/
+/docs/adr/
+ROADMAP*.md
+PRD*.md
+TODO*.md
+*-DRAFT.md
+DESIGN_BRIEF.md
+/rewritten/
 
 # OS / editor
 .DS_Store
 *.swp
+*.swo
+*~
 
 # Private, re-runnable investigation bundle (firmware, third-party tools, raw outputs). Never commit.
 /private/
@@ -47,6 +105,3 @@ tv-info*.json
 __pycache__/
 *.pyc
 .ruff_cache/
-
-# Rewrite staging copies + process report (originals already replaced in place)
-/rewritten/

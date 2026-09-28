@@ -19,9 +19,8 @@ and are identified explicitly in F13-F15.
 This is a public-facing summary: it contains the model string, build/version
 identifiers and public URLs/hashes only. It intentionally omits any
 device-private identifier (TV serial, IP, MAC, DUID) — those never appear in
-firmware artifacts anyway, but the raw working notes this doc is condensed
-from (`evidence/fw-analysis/`, `evidence/root-feasibility-2026-09-26.md`) are
-private working files and are not tracked in this repository.
+firmware artifacts anyway. The raw working notes condensed into this document
+are private working files and are not tracked in this repository.
 
 ## Summary
 
@@ -32,8 +31,8 @@ private working files and are not tracked in this repository.
 - **Root and factory-app removal are not yet achieved.** `sdb uninstall` and
   `vd_appuninstall` were both empirically observed to
   return exit code 0 while leaving the live application list completely
-  unchanged (see `scripts/05-remove-apps.sh` and
-  `evidence/root-feasibility-2026-09-26.md`) — a refusal, not a success.
+  unchanged (see `scripts/05-remove-apps.sh` and the private before/after
+  captures) — a refusal, not a success.
 - The firmware container's AES key has **not been rotated** since 2021: a
   five-year-old, publicly known passphrase still decrypts the current 2026
   image. That is a confidentiality finding only — it does not grant root or
@@ -68,15 +67,15 @@ private working files and are not tracked in this repository.
 
 ## Findings
 
-F1-F12 are condensed from `evidence/fw-analysis/FINDINGS.md` (private offline
-working notes). F13-F15 add live evidence recorded on 2026-09-26. Confidence
-levels are called out explicitly below rather than left implicit.
+F1-F12 are condensed from private offline firmware-analysis notes. F13-F15 add
+live evidence recorded on 2026-09-26. Confidence levels are called out
+explicitly below rather than left implicit.
 
 **F1 — Provenance. Confidence: first-hand, verified.** Image obtained from
 the official Samsung CDN, resolved from the GQ55Q60TGUXZG support page:
 `downloadcenter.samsung.com/content/FM/202609/20260915171117277/T-NKLDEUC.zip`,
 1,349,064,478 bytes, sha256 `cb717ed98daf9580eb5b84bccbad5adac82f75dd021ed028f1ee1bb6c4abde32`.
-Full chain of custody in `evidence/fw-analysis/PROVENANCE.md`.
+The complete chain of custody remains in the private provenance record.
 
 **F2 — Container. Confidence: first-hand, high.** A stored (uncompressed)
 zip containing `image/info.txt` (435 bytes) and `image/upgrade.msd` (1.35 GB);
@@ -495,11 +494,11 @@ reference** (URL only). This repository does not vendor, copy or include any
 of their source code.
 
 1. **Download and verify the official firmware.**
-   Get the exact CDN URL from `evidence/fw-analysis/PROVENANCE.md` (or
-   re-resolve it from the GQ55Q60TGUXZG support page) and verify the hash:
+   Re-resolve the exact CDN URL from the GQ55Q60TGUXZG support page and verify
+   the hash:
 
    ```bash
-   curl -fSL -o T-NKLDEUC.zip "<URL from PROVENANCE.md>"
+   curl -fSL -o T-NKLDEUC.zip "<URL from Samsung support>"
    shasum -a 256 T-NKLDEUC.zip   # expect cb717ed9...4abde32 for the 2743.0 build
    unzip T-NKLDEUC.zip -d T-NKLDEUC   # yields image/info.txt, image/upgrade.msd
    ```
